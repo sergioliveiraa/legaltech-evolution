@@ -15,24 +15,34 @@ Sistema web e API REST desenvolvidos em **Spring Boot** para gestão de vínculo
 
 ---
 
-## Evolução por Entregas
+## Estrutura e Evolução por Entregas
 
-### Entrega 1 — Modelagem e Banco de Dados Relacional
-* Estruturação de **20 tabelas normalizadas** em `src/main/resources/schema.sql` cobrindo localidades, clientes, legaltechs, planos, vínculos, contratos, histórico de status, processos jurídicos, documentos, eventos de documento, acordos, atendimentos e pagamentos.
-* Carga inicial automatizada de registros de teste em `src/main/resources/data.sql`.
+### 1ª Entrega — Diagnóstico, Requisitos e Modelagem
+* **Diagnóstico do Sistema Legado:** Levantamento de gargalos operacionais no controle manual de contratos, prazos processuais, conformidade documental e faturamento recorrente.
+* **Matriz de Requisitos Revisados e Novos:** Especificação dos requisitos funcionais e não funcionais, incluindo as regras de negócio de integridade de vínculos (`RN-01`), vigência contratual (`RN-02`), revisão humana obrigatória antes de assinatura/aprovação documental (`RN-04`), controle financeiro de pagamentos/estornos (`RN-05`) e cálculo automático de risco processual.
+* **Diagrama de Classes e Modelos (Original vs. Proposto):** Evolução do modelo conceitual inicial para uma arquitetura relacional normalizada em **20 tabelas**, garantindo rastreabilidade histórica de status contratuais, eventos de documentos, movimentações processuais e auditoria financeira.
+* **Justificativas Arquiteturais:** Adoção de normalização relacional para evitar redundância cadastral (localidades, clientes, legaltechs e planos) e separação em camadas (`model`, `repository`, `service`, `dto`, `controller`, `config`) para desacoplar regras de negócio da interface web.
 
-### Entrega 2 — Backend Spring Boot, JPA, Regras de Negócio e API REST
-* Mapeamento objeto-relacional completo no pacote `model` e repositórios Spring Data JPA no pacote `repository`.
-* Implementação da camada de serviços (`service`), DTOs (`dto`), tratamento global de exceções (`exception`) e endpoints REST (`controller`):
-    * **RN-01 / RN-02:** Validação de integridade de vínculos e consistência cronológica das datas de início, fim e cancelamento de contratos.
-    * **RN-04:** Bloqueio de aprovação ou assinatura de documentos jurídicos sem revisão humana prévia.
-    * **RN-05:** Validações financeiras para pagamentos, assinaturas e estornos.
-    * **Domínio Calculado:** Classificação automática de faixa de risco de perda processual (`BAIXO`, `MEDIO`, `ALTO`, `CRITICO`) e verificação de cancelamento contratual.
+### 2ª Entrega — Backend Spring Boot, Banco de Dados e Persistência
+* **Aplicação Spring Boot Executável:** Configuração completa via Maven (`pom.xml` e Maven Wrapper) com inicialização embarcada na porta `8081`.
+* **Banco de Dados e Scripts (`schema.sql` e `data.sql`):** Criação automática das 20 tabelas relacionais e carga inicial de registros de teste a cada inicialização.
+* **Camada JPA, Serviços e Controllers:**
+    * Entidades mapeadas com Jakarta Persistence (`@Entity`, relacionamentos `@ManyToOne`, `@OneToMany` e métodos de domínio) no pacote `model` e interfaces Spring Data JPA no pacote `repository`.
+    * Regras de negócio implementadas na camada `service`, transferência de dados via `dto` e tratamento padronizado de erros em `exception`.
+    * Endpoints RESTful em `controller` (como `GET /api/v1/vinculos`) com operações persistidas demonstráveis no banco H2 e retornadas em JSON.
 
-### Entrega 3 — Segurança, Perfis de Acesso, Interface Responsiva e Testes
-* **Autenticação e Autorização (`SecurityConfig`):** Fluxo completo de login (`/login`) e logout (`/logout`) com invalidação de sessão e controle de acesso baseado em papéis (`ROLE_ADMIN` e `ROLE_OPERADOR`).
-* **Portal Web Thymeleaf (`templates/`):** Telas responsivas para desktop e dispositivos móveis com renderização condicional (`sec:authorize`), dashboard com indicadores em tempo real do banco H2, painel administrativo de contratos e página customizada de erro `403 Acesso Negado`.
-* **Testes Automatizados (`LegaltechIntegracaoTest`):** Suíte de 6 testes de integração validando persistência JPA, regras de domínio, redirecionamento de usuários não autenticados, bloqueio `403` para `OPERADOR`, acesso irrestrito para `ADMIN` e encerramento de sessão no logout.
+### 3ª Entrega — Autenticação, Perfis de Acesso e Interface Responsiva
+* **Fluxo de Login e Logout (`SecurityConfig`):** Autenticação baseada em formulário (`/login`) e encerramento seguro de sessão (`/logout` com invalidação de `HttpSession` e limpeza de cookies).
+* **Dois Perfis com Permissões Distintas (RBAC):**
+    * **`ROLE_ADMIN` (Gestor Jurídico):** Acesso irrestrito ao painel operacional, endpoints REST e módulo administrativo/financeiro (`/admin/gestao`).
+    * **`ROLE_OPERADOR` (Operador):** Acesso ao painel operacional e consultas REST, com bloqueio automático (`HTTP 403`) ao tentar acessar rotas administrativas (`/admin/**`).
+* **Páginas Responsivas com Thymeleaf Integrado:** Templates HTML5 + Bootstrap 5 adaptáveis a desktop e dispositivos móveis (`login.html`, `dashboard.html`, `admin-gestao.html` e `acesso-negado.html`), utilizando `thymeleaf-extras-springsecurity6` (`sec:authorize`, `sec:authentication`) para exibição dinâmica de dados e permissões.
+
+### 4ª Entrega — Sistema Integrado, Testes, Evidências e Documentação
+* **Sistema Integrado:** Integração ponta a ponta entre banco relacional H2, camada de persistência JPA, regras de negócio, APIs REST, controle de acesso Spring Security e portal web Thymeleaf.
+* **Testes Automatizados (`LegaltechIntegracaoTest`):** Suíte com 6 testes de integração (JUnit 5 + MockMvc + Spring Security Test) validando carga do banco via JPA, cálculos de domínio, redirecionamento de usuários não autenticados, bloqueio `403` para `OPERADOR`, acesso liberado para `ADMIN` e logout.
+* **Evidências de Execução:** Capturas de tela versionadas em `docs/evidencias/` comprovando testes, banco H2, API REST, autenticação e controle de acesso.
+* **Histórico Git e Documentação:** Repositório estruturado com commits semânticos divididos por entrega e instruções completas de execução.
 
 ---
 
@@ -44,7 +54,7 @@ Sistema web e API REST desenvolvidos em **Spring Boot** para gestão de vínculo
 ### Executar a Aplicação
 1. Clone o repositório e acesse a pasta raiz do projeto:
    ```bash
-   git clone <URL_DO_SEU_REPOSITORIO>
+   git clone [https://github.com/sergioliveiraa/legaltech-evolution.git](https://github.com/sergioliveiraa/legaltech-evolution.git)
    cd legaltech-evolution
    ```
 2. Inicie o servidor utilizando o Maven Wrapper:
@@ -68,7 +78,7 @@ Sistema web e API REST desenvolvidos em **Spring Boot** para gestão de vínculo
 ## Credenciais e Endpoints de Acesso
 
 ### Portal Web (`http://localhost:8081/login`)
-A página de login possui botões de preenchimento rápido para testar ambos os perfis:
+A página de login conta com botões de preenchimento rápido para testar ambos os perfis:
 
 | Perfil | E-mail (Usuário) | Senha | Permissões |
 | :--- | :--- | :--- | :--- |
