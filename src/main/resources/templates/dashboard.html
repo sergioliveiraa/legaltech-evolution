@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-BR"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Dashboard | Legaltech Evolution</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+    <div class="container">
+        <a class="navbar-brand fw-bold" th:href="@{/dashboard}">Legaltech Evolution</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuPrincipal">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="menuPrincipal">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link active" th:href="@{/dashboard}">Dashboard</a>
+                </li>
+                <!-- Item visível APENAS para ADMIN -->
+                <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                    <a class="nav-link text-warning fw-semibold" th:href="@{/admin/gestao}">
+                        Gestão de Contratos (Admin)
+                    </a>
+                </li>
+            </ul>
+
+            <div class="d-flex align-items-center gap-3">
+                <span class="text-light small">
+                    <strong sec:authentication="name">usuário</strong>
+                    <span class="badge bg-primary ms-1" sec:authorize="hasRole('ADMIN')">ADMIN</span>
+                    <span class="badge bg-secondary ms-1" sec:authorize="hasRole('OPERADOR')">OPERADOR</span>
+                </span>
+                <form th:action="@{/logout}" method="post" class="m-0">
+                    <button type="submit" class="btn btn-outline-light btn-sm">Sair</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<main class="container py-4">
+    <div class="mb-4">
+        <h3 class="fw-bold mb-1">Visão Geral da Operação</h3>
+        <p class="text-muted">Dados sincronizados em tempo real com o banco H2.</p>
+    </div>
+
+    <!-- Cards responsivos -->
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <span class="text-muted small text-uppercase fw-semibold">Vínculos Ativos</span>
+                    <h2 class="fw-bold text-primary mt-2 mb-0" th:text="${totalVinculos}">0</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <span class="text-muted small text-uppercase fw-semibold">Contratos Registrados</span>
+                    <h2 class="fw-bold text-success mt-2 mb-0" th:text="${totalContratos}">0</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <span class="text-muted small text-uppercase fw-semibold">Documentos Jurídicos</span>
+                    <h2 class="fw-bold text-dark mt-2 mb-0" th:text="${totalDocumentos}">0</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bloco de demonstração de controle de acesso -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <h5 class="fw-bold mb-2">Teste de Permissões por Perfil</h5>
+            <p class="text-muted small mb-3">
+                O botão abaixo aponta para a rota restrita <code>/admin/gestao</code>.
+                O perfil <strong>ADMIN</strong> acessa a tabela financeira de contratos; o perfil <strong>OPERADOR</strong> é redirecionado para a página de acesso negado.
+            </p>
+            <div class="d-flex flex-wrap gap-2">
+                <a th:href="@{/admin/gestao}" class="btn btn-warning fw-semibold">
+                    Acessar Área Restrita (/admin/gestao)
+                </a>
+                <a th:href="@{/api/v1/vinculos}" target="_blank" class="btn btn-outline-primary">
+                    Consultar API REST (/api/v1/vinculos)
+                </a>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
